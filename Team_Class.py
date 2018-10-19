@@ -70,3 +70,6 @@ class team(player,playerDatabase):
         lineCount,j = self.search('playerDatabase.txt',find1,"","","addPlayer")
         teamFile.write(str(j))
         teamFile.close()
+       
+    def removeTeam(self,teamNumber):
+        os.remove("team"+teamNumber+".txt")
