@@ -1,17 +1,9 @@
-
-
 """
-
 Player class
-
 This is the tool set for creating a new player instance
-
 It also contains the validation for creating a new player instance
-
 Note:
-
     Need to add validation
-
 """
 
 import re,datetime,io,sys,os.path,os
@@ -107,4 +99,3 @@ class player():
     def getPlayerData(self):
         playerData = self.playerID + self.firstName + self.lastName + self.Email+self.phoneNumber+self.Address+self.Postcode+self.dateOfBirth+self.dateOfJoining
         return playerData
-
