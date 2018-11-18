@@ -26,35 +26,44 @@ class match(team):
         self.opposition = self.getOpposition()
 
     def getMatchID(self):
-        self.matchID = sum(1 for line in open("matchFile.txt")) + 1
-        self.matchID = "{:05d}".format(self.matchID)
-        self.matchID = str(self.matchID)
-        return self.matchID
+        File = open("matchFile.txt","r")
+        data = File.readlines()
 
-    def getTeamNumber(self):
-        self.teamNumber = raw_input("What team is playing in the match?")
+
+        if len(data) != 0 :
+            data =  str(data[-1])
+            matchID=int(data[0:5])+1
+            matchID = "{:05d}".format(matchID)
+            matchID = str(matchID)
+        else:
+            matchID = "00001"
+
+        return matchID
+
+    def getTeamNumber(self,teamNumber):
+        self.teamNumber = str(teamNumber)
         self.teamNumber = "{:03d}".format(int(self.teamNumber))
         self.teamNumber = str(self.teamNumber)
         return self.teamNumber
 
-    def getLocation(self):
-        self.location = raw_input("Where is the match being played ?")
+    def getLocation(self,Location):
+        self.location = Location
         if len(self.location) > 30 :
             self.getLocation()
         self.location = "{:<30}".format(self.location)
         self.location.lower()
         return self.location
 
-    def getTime(self):
-        self.time = raw_input("What time is the match being played")
-        return self.time
+    def getTime(self,time):
 
-    def getDay(self):
-        self.day = raw_input("What day is the match ? ")
-        return self.day
+        return time
 
-    def getOpposition(self):
-        self.opposition = raw_input("Who is playing against ?")
+    def getDay(self,day):
+
+        return day
+
+    def getOpposition(self,opposition):
+        self.opposition = opposition
         if len(self.opposition) > 30 :
             self.getOpposition()
         self.opposition = "{:<30}".format(self.opposition).lower()
