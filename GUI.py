@@ -1,11 +1,12 @@
-
 """
-
 Gui
-
 This is the system that handles Gui
-
 """
+
+
+
+
+
 
 import re,datetime,io,sys,os.path,os,smtplib,hashlib, uuid,ctypes
 ##from email.MIMEMultipart import MIMEMultipart
@@ -18,6 +19,7 @@ from System_Tool_Kit import *
 from Team_Class import *
 from Match_Class import *
 from Match_Availablity_class import *
+from Data_Import import *
 
 
 class SampleApp(tk.Tk):
@@ -33,7 +35,7 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (Login, Register, Home, EditPlayerDatabase,AddPlayer, removePlayer,EditPlayerDetailsBottom,EditPlayerDetailsTop,EditTeams,CreateTeam):
+        for F in (Login, Register, Home, EditPlayerDatabase,AddPlayer, removePlayer,EditPlayerDetailsBottom,EditPlayerDetailsTop,EditTeams,CreateTeam,EditMatch,addMatch,Import,playerImport,matchImport,TeamList,MatchAvailablity):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -173,11 +175,19 @@ class Home(tk.Frame):
 
         self.EditPlayerButton = tk.Button(self, text="Edit Player ",command=lambda: controller.show_frame("EditPlayerDatabase") )
         self.EditTeamButton = tk.Button(self, text="Edit Team ",command=lambda: controller.show_frame("EditTeams") )
+        self.EditMatchButton = tk.Button(self, text="Edit Match ",command=lambda: controller.show_frame("EditMatch") )
+        self.ImportButton = tk.Button(self, text="Import files",command=lambda: controller.show_frame("Import") )
+        self.TeamListButton = tk.Button(self, text="Produce a team list",command=lambda: controller.show_frame("TeamList") )
+        self.MatchAvailablityButton = tk.Button(self, text="Match Availability",command=lambda: controller.show_frame("MatchAvailablity") )
         self.Title = tk.Label(self, text="Please select a function", font=controller.title_font)
 
         self.Title.grid(row=0,column=0,columnspan=3)
         self.EditPlayerButton.grid(row=1,column=0)
         self.EditTeamButton.grid(row=1,column=1)
+        self.EditMatchButton.grid(row =1,column =2)
+        self.ImportButton.grid(row = 2,column = 0)
+        self.TeamListButton.grid(row = 2,column = 1)
+        self.MatchAvailablityButton.grid(row = 2, column = 2)
 
 
 class   EditPlayerDatabase(tk.Frame):
@@ -218,15 +228,7 @@ class   AddPlayer(tk.Frame,playerDatabase,player):
         self.txtPostcode = tk.Entry(self)
         self.txtDateOfBirth = tk.Entry(self)
 
-        firstName = self.getFirstName(self.txtFirstName.get())
-        lastName=self.getLastName(self.txtLastName.get())
-        email = self.getEmail(self.txtEmail.get())
-        phoneNumber = self.getPhoneNumber(self.txtPhoneNumber.get())
-        dateOfBirth = self.getDateOfBirth(self.txtDateOfBirth.get())
-        address = self.getAddress(self.txtAddress.get())
-        postcode = self.getPostcode(self.txtPostcode.get())
-
-        self.SubmitButton= tk.Button(self, text="Submit",command=lambda: self.addPlayer(firstName,lastName,email,phoneNumber,dateOfBirth,address,postcode) )
+        self.SubmitButton= tk.Button(self, text="Submit",command=lambda: self.addPlayer() )
         self.BackButton= tk.Button(self, text="Back",command=lambda: controller.show_frame("EditPlayerDatabase"))
 
         self.lblFirstName.grid(row=1,column=0)
@@ -246,10 +248,19 @@ class   AddPlayer(tk.Frame,playerDatabase,player):
         self.SubmitButton.grid(row=8,column=0,columnspan=2)
         self.BackButton.grid(row=9,column = 0,columnspan = 2)
 
-    def addPlayer(self,firstName,lastName,email,phoneNumber,dateOfBirth,address,postcode):
+    def addPlayer(self):
         playerID = self.getPlayerID()
         dateOfJoining = self.getDateOfJoining()
+        firstName = self.getFirstName(self.txtFirstName.get())
+        lastName=self.getLastName(self.txtLastName.get())
+        email = self.getEmail(self.txtEmail.get())
+        phoneNumber = self.getPhoneNumber(self.txtPhoneNumber.get())
+        dateOfBirth = self.getDateOfBirth(self.txtDateOfBirth.get())
+        address = self.getAddress(self.txtAddress.get())
+        postcode = self.getPostcode(self.txtPostcode.get())
+
         playerData = str(playerID+firstName+lastName+email+phoneNumber+address+postcode+dateOfBirth+dateOfJoining)
+
         database = open("playerDatabase.txt",'a+')
         database.write(playerData + "\n")
         database.close()
@@ -419,7 +430,7 @@ class EditTeams(tk.Frame,playerDatabase):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        self.AddTeamButton = tk.Button(self, text="Create Team",command=lambda: controller.show_frame("CreateTeam") )
+        self.AddTeamButton = tk.Button(self, text="Create Team",command=lambda: self.teamCreation(controller) )
         self.RemoveRemoveButton = tk.Button(self, text="Remove Player",command=lambda: controller.show_frame("removeTeam") )
         self.EditTeamButton = tk.Button(self, text="Edit Player Details",command=lambda: controller.show_frame("EditPlayerTeamTop") )
         self.BackButton= tk.Button(self, text="Back",command=lambda: controller.show_frame("Home"))
@@ -429,18 +440,39 @@ class EditTeams(tk.Frame,playerDatabase):
         self.EditTeamButton.grid(row=1,column=2)
         self.BackButton.grid(row=4,column = 0,columnspan = 3)
 
+    def teamCreation(self,controller):
+        teamNumber = 1
+        while True:
+            if os.path.isfile("team"+str(teamNumber)+".txt") == True:
+                 int(teamNumber)
+                 teamNumber += 1
+
+
+            else:
+                teamFile = open("team"+str(teamNumber)+".txt",'w+')
+                break
+        controller.show_frame("CreateTeam")
+
+
+
+
+
 class CreateTeam(tk.Frame,playerDatabase):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         teamNumber = 1
-##        while True:
-##            if os.path.isfile("team"+str(teamNumber)+".txt") == True:
-##                 int(teamNumber)
-##                 teamNumber += 1
-##            else:
-##                break
+        while True:
+            if os.path.isfile("team"+str(teamNumber)+".txt") == True:
+                 int(teamNumber)
+                 teamNumber += 1
+
+
+            else:
+
+                break
+
 
 
         self.lblTeam = tk.Label(self,text = ("Team "+str(teamNumber) ))
@@ -457,6 +489,8 @@ class CreateTeam(tk.Frame,playerDatabase):
 
         self.AddPlayerButton = tk.Button(self, text="Add",command=lambda: self.addPlayerToTeam(teamNumber) )
         self.RemovePlayerButton = tk.Button(self, text="Remove",command=lambda: self.addPlayerToTeam(teamNumber,RemoveSearchVaule) )
+        self.BackButton = tk.Button(self, text="Back",command=lambda: self.backButton(teamNumber,controller) )
+        self.FinnishButton = tk.Button(self, text="Finnish",command=lambda: self.finnishButton(controller) )
 
         self.lblAddPlayer.grid(row=0,column=0)
         self.lblTeam.grid(row=0,column=4)
@@ -469,6 +503,8 @@ class CreateTeam(tk.Frame,playerDatabase):
         self.RemoveSearchPlayer.grid(row=3,column=1)
         self.RemovePlayerButton.grid(row=3,column=2)
         self.table.grid(row=1,column=4,rowspan=4)
+        self.BackButton.grid(row=4,column = 0)
+        self.FinnishButton.grid(row=4,column =1)
 
 
 
@@ -481,10 +517,13 @@ class CreateTeam(tk.Frame,playerDatabase):
 
             lineCount,j = self.search('playerDatabase.txt',AddSearchValue,"","","addPlayer")
 
-            teamFile.write(str(j))
+            teamFile.write(str(j)+"\n")
             j = j[5:35].strip() +" "+ j[35:65].strip()
             self.table.insert(1,j)
             teamFile.close()
+
+
+
 
     def removePlayerFromTeam(self,teamNumber,find1):
         if find1 !="":
@@ -492,6 +531,241 @@ class CreateTeam(tk.Frame,playerDatabase):
 
             lineCount = self.search(find1,"","","team")
             self.remove("team"+str(teamNumber)+".txt",lineCount)
+
+    def backButton(self,teamNumber,controller):
+
+        os.remove("team"+str(teamNumber)+".txt")
+        controller.show_frame("EditTeams")
+
+    def finnishButton(self,controller):
+        controller.show_frame("EditTeams")
+
+class EditMatch(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        self.AddMatchButton = tk.Button(self, text="Add Match",command=lambda: controller.show_frame("addMatch") )
+        self.RemoveMatchButton = tk.Button(self, text="Remove Match",command=lambda: controller.show_frame("removeTeam") )
+        self.EditMatchButton = tk.Button(self, text="Edit Match Details",command=lambda: controller.show_frame("EditPlayerTeamTop") )
+        self.BackButton= tk.Button(self, text="Back",command=lambda: controller.show_frame("Home"))
+
+        self.AddMatchButton.grid(row=1,column=0)
+        self.RemoveMatchButton.grid(row=1,column=1)
+        self.EditMatchButton.grid(row=1,column=2)
+        self.BackButton.grid(row=4,column = 0,columnspan = 3)
+
+
+class addMatch(tk.Frame,match):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        self.lblTeam= tk.Label(self,text="Team: ")
+        self.lblLocation =tk.Label(self,text="Location: ")
+        self.lblTime = tk.Label(self,text="Time: ")
+        self.lblDay = tk.Label(self,text="Day: ")
+        self.lblOpposition = tk.Label(self,text="Opposition: ")
+        self.txtTeam = tk.Entry(self)
+        self.txtLocation = tk.Entry(self)
+        self.txtTime = tk.Entry(self)
+        self.txtDay = tk.Entry(self)
+        self.txtOpposition = tk.Entry(self)
+
+        self.lblTeam.grid(row=0,column=0)
+        self.lblLocation.grid(row=1,column=0)
+        self.lblTime.grid(row=2,column=0)
+        self.lblDay.grid(row=3,column=0)
+        self.lblOpposition.grid(row=4,column=0)
+        self.txtTeam.grid(row = 0,column = 1)
+        self.txtLocation.grid(row = 1,column = 1)
+        self.txtTime.grid(row = 2,column = 1)
+        self.txtDay.grid(row = 3,column = 1)
+        self.txtOpposition.grid(row = 4,column = 1)
+
+
+
+
+        self.BackButton = tk.Button(self, text="Back",command=lambda: controller.show_frame("EditMatch") )
+        self.SaveButton = tk.Button(self, text="Save",command=lambda: self.saveButton(controller) )
+        self.BackButton.grid(row=5,column =0)
+        self.SaveButton.grid(row=5,column =1)
+
+    def saveButton(self,controller):
+
+        Team = self.getTeamNumber(self.txtTeam.get())
+        Location = self.getLocation(self.txtLocation.get())
+        Time = self.getTime(self.txtTime.get())
+        Day = self.getDay(self.txtDay.get())
+        Opposition =self.getOpposition( self.txtOpposition.get())
+        MatchID = self.getMatchID()
+        Match = MatchID+Team+Location+Time+Day+Opposition+"\n"
+        File = open("matchFile.txt","a+")
+        File.write(Match)
+
+        controller.show_frame("EditTeams")
+
+class Import(tk.Frame,match,DataImport):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        self.PlayerImportButton = tk.Button(self, text="Import Players",command=lambda: controller.show_frame("playerImport") )
+        self.MatchImportButton = tk.Button(self, text="Import Match",command=lambda: self.saveButton(controller) )
+        self.BackButton = tk.Button(self, text="Back",command=lambda: controller.show_frame("Home") )
+        self.PlayerImportButton.grid(row=0,column =0)
+        self.MatchImportButton.grid(row=0,column =1)
+        self.BackButton.grid(row=1,column =1)
+
+class playerImport(tk.Frame,match,DataImport):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        lblFile = tk.Label(self,text = "What is the address of the file you want to import ?")
+        self.txtImportFile = tk.Entry(self)
+        ImportButton = tk.Button(self,text="Import",command=lambda: self.Button(controller))
+        BackButton = tk.Button(self, text="Back",command=lambda: controller.show_frame("Import") )
+        lblFile.grid(row = 0 ,column =0)
+        self.txtImportFile.grid(row = 0,column =1 )
+        BackButton.grid(row =1,column =0)
+        ImportButton.grid(row= 1,column =1 )
+
+
+
+    def Button(self,controller):
+        file = self.txtImportFile.get()
+        if file != "":
+            self.PlayerImport(file)
+            controller.show_frame("Import")
+
+class matchImport(tk.Frame,match,DataImport):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        lblFile = tk.Label(self,text = "What is the address of the file you want to import ?")
+        txtImportFile = tk.Entry(self)
+        ImportButton = tk.Button(self,text="Import",command=lambda: self.Button(controller))
+        BackButton = tk.Button(self, text="Back",command=lambda: controller.show_frame("Import") )
+        lblFile.grid(row = 0 ,column =0)
+        txtImportFile.grid(row = 0,column =1 )
+        BackButton.grid(row =1,column =0)
+        ImportButton.grid(row= 1,column =1 )
+
+
+
+    def Button(self,controller):
+        file = self.txtImportFile.get()
+        if file != "":
+            self.MatchImport(file)
+            controller.show_frame("Import")
+
+class TeamList(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        teamNumber =1
+
+
+        while True:
+
+            if os.path.isfile("team"+str(teamNumber)+".txt") == True:
+                 int(teamNumber)
+                 teamNumber += 1
+
+            else:
+                break
+
+        tableWidth = 3
+        teamNumber = teamNumber//tableWidth
+
+        currentTeam = 0
+        for i in range(teamNumber+1):
+            for m in range(tableWidth):
+                currentTeam = currentTeam+1
+                if os.path.isfile("team"+str(currentTeam)+".txt") == False:
+                    break
+                self.lblTable = tk.Label(self,text = "Team" + str(currentTeam))
+                self.table = tk.Listbox(self)
+                n = 2*int(i)
+                File = open("Team" + str(i*m+1)+".txt",'r+')
+                searchlines = File.readlines()
+
+                for j, line in enumerate(searchlines):
+                    k = line[5:35].strip() +" "+ line[35:65].strip()
+                    self.table.insert(1,k)
+                self.lblTable.grid(row=n,column=m)
+                self.table.grid(row = n+1,column=m)
+
+class MatchAvailablity(tk.Frame,avilablity):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        self.location = ""
+        self.time = ""
+        self.day = ""
+        self.opposition = ""
+        self.teamNumber = 0
+        self.lblTeamSelection = tk.Label(self,text = "Team: ")
+        self.txtTeamSelection = tk.Entry(self)
+        self.TeamSelectionButton = tk.Button(self,text = "Load Team",command=lambda: self.LoadTeam())
+
+        self.table = tk.Listbox(self)
+
+        self.lblMatchSelection = tk.Label(self,text = "Match : ")
+        self.txtTeamSelection = tk.Entry(self)
+        self.MatchSelectionButton = tk.Button(self,text = "Select Match",command=lambda: self.MatchSelection())
+        self.SendEmailButton = tk.Button(self,text = "Send Email",command  = lambda:self.sendEmailGroup(self.location,self.time,self.day,self.opposition,self.teamNumber))
+        self.SeeResponcesButton = tk.Button(self,text = "See Responces",command=lambda: self.SeeResponces())
+        self.table = tk.Listbox(self)
+        self.ResponceTable = tk.Listbox(self)
+
+        self.lblTeamSelection.grid(row =0, column = 0 )
+        self.txtTeamSelection.grid(row=0,column = 1)
+        self.TeamSelectionButton.grid(row = 1,column = 1)
+        self.table.grid(row =1,column=0,)
+        self.lblMatchSelection.grid(row = 2 ,column = 0)
+        self.SendEmailButton.grid(row = 3, column = 0)
+        self.MatchSelectionButton.grid(row=2,column =1 )
+        self.SeeResponcesButton.grid(row = 4,column = 1)
+        self.ResponceTable.grid(row = 4,column = 0)
+
+    def MatchSelection(self):
+        self.teamNumber = self.txtTeamSelection.get()
+        if self.teamNumber !="":
+            self.location,self.time,self.day,self.opposition = self.emailList(self.teamNumber)
+            self.lblMatchSelection.config(text = str("Match : Whitchurch " + self.teamNumber +"'s vs "+self.opposition.strip()+" on the "+self.day)  )
+        else:
+            print("You have not enter at team number")
+
+
+
+
+
+    def LoadTeam(self):
+        teamNumber = self.txtTeamSelection.get()
+        if teamNumber != "" :
+            File = open("Team" + str(teamNumber)+".txt",'r+')
+            searchlines = File.readlines()
+
+            for j, line in enumerate(searchlines):
+                k = line[5:35].strip() +" "+ line[35:65].strip()
+                self.table.insert(1,k)
+
+
+    def SeeResponces(self):
+        Responces = self.matchResponces(self.time,self.day,self.teamNumber)
+        for i in Responces:
+            self.ResponceTable.insert(1,i)
+
+
+
+
 
 
 
