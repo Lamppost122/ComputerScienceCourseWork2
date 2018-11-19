@@ -13,8 +13,8 @@ import smtplib
 import time
 import imaplib
 import email
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
+##from email.MIMEMultipart import MIMEMultipart
+##from email.MIMEText import MIMEText
 import tkinter as tk
 from tkinter import font  as tkfont
 from System_Tool_Kit import *
@@ -26,15 +26,10 @@ from System_Tool_Kit import *
 
 
 class avilablity(playerDatabase):
+    def emailMessage(self):
+        text = "Are you avialable to play for Whitchurch "+teamNumber+ "'s ? "+"  \n"+" Date: "+ day + "\n"+"Time: " +time +"\n"+ "Location: " + location
 
-
-
-    def sendAvilabilityCheck(self,location,time,day,opposition,teamNumber,email):
-
-            email = "ComputerScienceTest2@gmail.com"
-            msg = MIMEMultipart()
-            text = "Are you avialable to play for Whitchurch "+teamNumber+ "'s ? "+"  \n"+" Date: "+ day + "\n"+"Time: " +time +"\n"+ "Location: " + location
-            body = text + """\
+        html = """\
 <html>
   <head></head>
    <body>
@@ -47,6 +42,17 @@ class avilablity(playerDatabase):
   </body>
 </html>
 """
+    body = text + html
+    return body
+
+
+
+
+    def sendAvilabilityCheck(self,location,time,day,opposition,teamNumber,email):
+
+            email = "ComputerScienceTest2@gmail.com"
+            msg = MIMEMultipart()
+            text =  emailMessage()
             msg['Subject'] = "Whitchurch Hockey club availablity"
             msg.attach(MIMEText(body, 'html'))
             text = msg.as_string()
@@ -58,22 +64,26 @@ class avilablity(playerDatabase):
             print(location+time+day+opposition+teamNumber+email)
 
     def getWeeksMatches(self):
-        File = open("matchFile.txt",'r')
         MatchWriter = open("WeeksMatches.txt",'w+')
-        searchlines = File.readlines()
+        searchlines = readFile("matchFile.txt",'r')
         nextWeek = self.getNextWeek()
         for i, line in enumerate(searchlines):
             for j in nextWeek:
                 if line[43:51] == j:
                     MatchWriter.write(line)
 
-
-    def read_Email(self):
+    def readEmailSetup(self):
         ORG_EMAIL   = "@gmail.com"
         FROM_EMAIL  = "ComputerScienceTest1" + ORG_EMAIL
         FROM_PWD    = "Password1@"
         SMTP_SERVER = "imap.gmail.com"
         SMTP_PORT   = 993
+        return FROM_EMAIL,FROM_PWD,SMTP_SERVER,SMTP_PORT
+
+
+    def read_Email(self):
+        FROM_EMAIL,FROM_PWD,SMTP_SERVER,SMTP_PORT = readEmailSetup()
+
         mail = imaplib.IMAP4_SSL(SMTP_SERVER)
         mail.login(FROM_EMAIL,FROM_PWD)
         mail.select('inbox')
@@ -84,22 +94,30 @@ class avilablity(playerDatabase):
         id_list = mail_ids.split()
         first_email_id = int(id_list[0])
         latest_email_id = int(id_list[-1])
+        CreateInbox(latest_email_id,first_email_id,data)
+
+    def CreateInbox(latest_email_id,first_email_id,data):
 
         inbox = []
 
-        for i in range(latest_email_id,first_email_id, -1):
-            typ, data = mail.fetch(i, '(RFC822)' )
-
-            for response_part in data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_string(response_part[1])
-                    email_subject = msg['subject']
-                    Emails =email_subject[12:120]
-                    inbox.append(Emails)
-
-
+        for currentEmail in range(latest_email_id,first_email_id, -1):
+            typ, data = mail.fetch(currentEmail, '(RFC822)' )
+            inbox.append(FindSubject(data))
 
         return inbox
+
+
+    def FindSubject(self,data):
+
+        for response_part in data:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_string(response_part[1])
+                email_subject = msg['subject']
+                Emails =email_subject[12:120]
+                return Emails
+
+
+
 
     def matchResponces(self,time,day,teamNumber):
         inbox =  self.read_Email()
@@ -108,23 +126,27 @@ class avilablity(playerDatabase):
         for k, email in enumerate(inbox):
 
             if email[34:47] == str(time+day):
-                File = open("team"+str(teamNumber)+".txt",'r')
-                searchlines = File.readlines()
+                searchlines = readFile("team"+str(teamNumber)+".txt",'r')
                 for j ,data in enumerate(searchlines):
 
                     if email[78:].lstrip() in data:
 
                         Player = data[5:35].strip()+data[35:65].strip()
-                        if "Yes" in email[:5]:
-                            Responce ="Yes"
-                            respondedPlayer.append(str(Responce+"  " +Player))
+                        PlayerResponce = email[:5]
+                        respondedPlayer.append(str(ResponceType(respondedPlayer,Player,PlayerResponce)+"  " +Player))
 
-                        else:
-                            Responce ="No"
-                            respondedPlayer.append(str(Responce+"  " +Player))
+
+
+
         return respondedPlayer
 
+    def ResponceType(self,respondedPlayer,Player,PlayerResponce):
 
+        if "Yes" in PlayerResponce:
+            Responce ="Yes"
+        else:
+            Responce ="No"
+        return Responce
 
 
 
@@ -138,25 +160,25 @@ class avilablity(playerDatabase):
     def emailList(self,teamNumber):
 
         self.getWeeksMatches()
-        File = open("WeeksMatches.txt",'r')
-
-
-
-
-        weeksMatches = File.readlines()
-        File.close()
+        weeksMatches = readFile("WeeksMatches.txt",'r')
         for i, matches in enumerate(weeksMatches):
 
             if teamNumber == matches[5:8].lstrip("0"):
+                location,time,day,opposition = matchDataFormat(matches)
 
-                location = matches[8:38]
-                time = matches[38:43]
-                day = matches[43:51]
-                opposition = matches[51:81]
+
                 Check = ctypes.windll.user32.MessageBoxA(0,  ("Is Whitchurch " + teamNumber +"'s vs "+opposition.strip()+" on the "+day +" the match your looking for ?"),"Search", 4)
 
                 if Check ==6:
                     return location,time,day,opposition
+
+    def matchDataFormat(self,matches):
+        location = matches[8:38]
+        time = matches[38:43]
+        day = matches[43:51]
+        opposition = matches[51:81]
+        return location,time,day,opposition
+
 
 
     def sendEmailGroup(self,location,time,day,opposition,teamNumber):
@@ -165,7 +187,6 @@ class avilablity(playerDatabase):
         for j, players in enumerate(searchLines):
             email = players[65:95]
             self.sendAvilabilityCheck(location,time,day,opposition,teamNumber,email)
-
 
 
 
