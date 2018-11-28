@@ -7,11 +7,11 @@ Note:
 """
 
 import re,datetime,io,sys,os.path,os
-
+from datetime import datetime, timedelta
 
 class player():
     def __init__(self,playerID,firstName,lastName,Email,phoneNumber,Address,Postcode,dateOfBirth,dateOfJoining):
-        self.playerID = self.getPlayerID()
+        self.playerID = playerID
         self.firstName = firstName
         self.lastName = lastName
         self.Email = Email
@@ -19,83 +19,115 @@ class player():
         self.Address = Address
         self.Postcode = Postcode
         self.dateOfBirth = dateOfBirth
-        self.dateOfJoining = self.getDateOfJoining()
+        self.dateOfJoining = dateOfJoining
 
     def getPlayerID(self):
-        File = open("playerDatabase.txt","r")
-        data = File.readlines()
 
-
-        if len(data) != 0 :
-            data =  str(data[-1])
-            playerID=int(data[0:5])+1
-            playerID = "{:05d}".format(playerID)
-            playerID = str(playerID)
-        else:
-            playerID = "00001"
-
+##        data = self.readFile("playerDatabase.txt","r")
+##
+##        if len(data) != 0 :
+##            data =  str(data[-1])
+##            playerID=int(data[0:5])+1
+##            playerID = "{:05d}".format(playerID)
+##            playerID = str(playerID)
+##        else:
+##            playerID = "00001"
+        playerID = "00001"
         return playerID
 
 
     def getFirstName(self,firstName):
-
-        if len(firstName) > 30 :
-            self.getFirstName()
-        firstName = "{:<30}".format(firstName)
         firstName.lower()
         return firstName
 
-    def getLastName(self,lastName):
+    def validFirstName(self,firstName):
+        if len(firstName) <30:
+            return True
+        else:
+            newFirstName = raw_input(firstName + " is not a valid first Name")
+            self.validFirstName(newFirstName)
 
-        if len(lastName) > 30 :
-            playerDatabase.getLastName()
-        lastName = "{:<30}".format(lastName)
+
+
+    def getLastName(self,lastName):
         lastName.lower()
         return lastName
 
-    def getEmail(self,Email):
 
-        if len(Email) > 30:
-            self.getEmail()
-##        if re.match(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", self.Email) != False:
-##            self.getEmail()
-        Email = "{:<30}".format(Email)
+    def validLastName(self,lastName):
+        if len(lastName) <30:
+            return True
+        else:
+            newLastName = raw_input(lastName +" is not a valid last Name")
+
+
+    def getEmail(self,Email):
         return Email
 
+    def validEmail(self,Email):
+        if len(Email) > 7:
+##            if re.match("^.+@([?)[a-zA-Z0-9-.]+.([a-zA-Z]{2,3}|[0-9]{1,3})(]?)$", Email) != None:
+                return True
+        return "Email", Email, False
+
     def getPhoneNumber(self,phoneNumber):
-##        if len(self.PhoneNumber) != 11:
-##            self.getPhoneNumber()
-##        if self.PhoneNumber.isdigit() == False:
-##            self.getPhoneNumber()
         return phoneNumber
 
-    def getAddress(self,Address):
+    def validPhoneNumber(self,phoneNumber):
+        if phoneNumber.isdigit() == True:
+            if phoneNumber[0] == "0" :
+                if len(phoneNumber) == 11 :
+                    return True
+        return "Phone Number" , phoneNumber , False
 
-        if len(Address) > 30:
-            self.getAddress()
-        Address = "{:<30}".format(Address)
-        return Address
+    def getAddress(self,address):
+        return address
 
-    def getPostcode(self,Postcode):
+    def validAddress(self,address):
+        if len(address) < 30:
+            return True
+        return "Address",address,False
 
-##        if re.match("^(([gG][iI][rR] {0,}0[aA]{2})|((([a-pr-uwyzA-PR-UWYZ][a-hk-yA-HK-Y]?[0-9][0-9]?)|(([a-pr-uwyzA-PR-UWYZ][0-9][a-hjkstuwA-HJKSTUW])|([a-pr-uwyzA-PR-UWYZ][a-hk-yA-HK-Y][0-9][abehmnprv-yABEHMNPRV-Y]))) {0,}[0-9][abd-hjlnp-uw-zABD-HJLNP-UW-Z]{2}))$)",Postcode) == False:
-##            playerDatabase.getPostcode()
-        Postcode.replace(" ","")
-        return Postcode
+    def getPostcode(self,postcode):
+        postcode.replace(" ","")
+        return postcode
+
+    def validPostcode(self,postcode):
+
+##        if re.match("^(([gG][iI][rR] {0,}0[aA]{2})|((([a-pr-uwyzA-PR-UWYZ][a-hk-yA-HK-Y]?[0-9][0-9]?)|(([a-pr-uwyzA-PR-UWYZ][0-9][a-hjkstuwA-HJKSTUW])|([a-pr-uwyzA-PR-UWYZ][a-hk-yA-HK-Y][0-9][abehmnprv-yABEHMNPRV-Y]))) {0,}[0-9][abd-hjlnp-uw-zABD-HJLNP-UW-Z]{2}))$)",postcode) == False:
+            return True
+##        return "Postcode", postcode , False
 
     def getDateOfBirth(self, dateOfBirth):
-
-##        try:
-##            datetime.datetime.strptime(inputDob, '%d/%m/%Y')
-##        except ValueError:
-##            playerDatabase.getDateOfBirth()
         return dateOfBirth
 
+    def validDateOfBirth(self,dateOfBirth):
+        try:
+            datetime.strptime(dateOfBirth, '%d/%m/%Y')
+        except ValueError:
+            return "Date of Birth ",dateOfBirth,False
+        if datetime.now() - timedelta(days=2000) > datetime.strptime(dateOfBirth, '%d/%m/%Y'):
+            return True
+        return "Date of Birth ",dateOfBirth, False
+
     def getDateOfJoining(self):
-        DateOfJoining = str(datetime.datetime.now())
+        DateOfJoining = str(datetime.now())
         return DateOfJoining
 
 
-    def getPlayerData(self):
-        playerData = self.playerID + self.firstName + self.lastName + self.Email+self.phoneNumber+self.Address+self.Postcode+self.dateOfBirth+self.dateOfJoining
+    def getPlayerData(self,playerID,firstName,lastName,Email,phoneNumber,Address,Postcode,dateOfBirth,dateOfJoining):
+        playerData = [playerID,firstName,lastName,Email,phoneNumber,Address,Postcode,dateOfBirth,dateOfJoining]
         return playerData
+
+    def validData(self,firstName,lastName,Email,phoneNumber,Address,Postcode,dateOfBirth):
+        self.validFirstName(firstName)
+        self.validLastName(lastName)
+        self.validEmail(Email)
+        self.validPhoneNumber(phoneNumber)
+        self.validAddress(Address)
+        self.validPostcode(Postcode)
+        self.validDateOfBirth(dateOfBirth)
+
+
+
+
