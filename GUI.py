@@ -227,6 +227,13 @@ class   AddPlayer(tk.Frame,playerDatabase,player):
         self.txtAddress = tk.Entry(self)
         self.txtPostcode = tk.Entry(self)
         self.txtDateOfBirth = tk.Entry(self)
+        self.lblFirstNameError= tk.Label(self)
+        self.lblLastNameError= tk.Label(self)
+        self.lblEmailError= tk.Label(self)
+        self.lblPhoneNumberError= tk.Label(self)
+        self.lblAddressError= tk.Label(self)
+        self.lblPostcodeError= tk.Label(self)
+        self.lblDateOfBirthError= tk.Label(self)
 
         self.SubmitButton= tk.Button(self, text="Submit",command=lambda: self.addPlayer() )
         self.BackButton= tk.Button(self, text="Back",command=lambda: controller.show_frame("EditPlayerDatabase"))
@@ -245,6 +252,13 @@ class   AddPlayer(tk.Frame,playerDatabase,player):
         self.txtAddress.grid(row=5,column=1)
         self.txtPostcode.grid(row=6,column=1)
         self.txtDateOfBirth.grid(row=7,column=1)
+        self.lblFirstNameError.grid(row=1,column=2)
+        self.lblLastNameError.grid(row=2,column=2)
+        self.lblEmailError.grid(row=3,column=2)
+        self.lblPhoneNumberError.grid(row=4,column=2)
+        self.lblAddressError.grid(row=5,column=2)
+        self.lblPostcodeError.grid(row=6,column=2)
+        self.lblDateOfBirthError.grid(row=7,column=2)
         self.SubmitButton.grid(row=8,column=0,columnspan=2)
         self.BackButton.grid(row=9,column = 0,columnspan = 2)
 
@@ -259,12 +273,19 @@ class   AddPlayer(tk.Frame,playerDatabase,player):
         address = self.getAddress(self.txtAddress.get())
         postcode = self.getPostcode(self.txtPostcode.get())
 
-        playerData = str(playerID+firstName+lastName+email+phoneNumber+address+postcode+dateOfBirth+dateOfJoining)
+        playerData = self.getPlayerData(playerID,firstName,lastName,email,phoneNumber,address,postcode,dateOfBirth,dateOfJoining)
+        i,validation = self.validData(firstName,lastName,email,phoneNumber,address,postcode,dateOfBirth)
 
-        database = open("playerDatabase.txt",'a+')
-        database.write(playerData + "\n")
-        database.close()
-        self.controller.show_frame("Home")
+
+        if validation != True:
+            i,validation = self.validData(firstName,lastName,email,phoneNumber,address,postcode,dateOfBirth)
+
+        else:
+
+            database = open("playerDatabase.txt",'a+')
+            database.write(str(playerData) + "\n")
+            database.close()
+        #self.controller.show_frame("Home")
 
 
 class removePlayer(tk.Frame,playerDatabase):
